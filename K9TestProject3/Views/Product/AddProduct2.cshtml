@@ -1,0 +1,94 @@
+﻿@model K9TestProject3.Fantastic.ProductVM
+
+@{
+    ViewBag.Title = "Add Product 2";
+}
+
+<h2>AddProduct2</h2>
+
+@using (@Html.BeginForm())
+{
+    <div>
+        @Html.TextBoxFor(m => m.Productname)
+        @Html.TextBoxFor(m => m.Category)
+
+        <br />
+        Children:<br />
+        <button type="button" id="addChild" onclick="addChildRow()">Add Child</button>
+        <table id="children">
+            <tbody class="childTableBody">
+                @for (var i = 0; i < Model.ColorAttributes.Count; i++)
+                {
+                    <tr>
+                        <td colspan="3">Child @i</td>
+                    </tr>
+                    <tr class="childInfoRow">
+                        <td>
+                            @Html.TextBoxFor(m => Model.ColorAttributes[i].ColorId)
+                        </td>
+                        @*<td>
+                            @Html.TextBoxFor(m => Model.ColorAttributes[i].)
+                        </td>*@
+                        <td>
+                            <button type="button" id="removeChild@(i)" onclick="removeChildRow(this)">Delete</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3">
+                            Grandchildren:<br />
+                            <button type="button" id="addGrandchild@(i)" onclick="addGrandchildRow(this)">Add Grandchild</button>
+                            <table id="grandChildren@(i)">
+                                <tbody>
+                                    @for (var j = 0; j < Model.ColorAttributes[i].SizeAttributes.Count; j++)
+                                    {
+                                        <tr>
+                                            <td>@Html.TextBoxFor(m => @Model.ColorAttributes[i].SizeAttributes[j].SizeId)</td>
+                                            <td>@Html.TextBoxFor(m => @Model.ColorAttributes[i].SizeAttributes[j].Quantity)</td>
+                                            <td><button type="button" id="removeGrandchild@(i)_@(j)" onclick="removeGrandchildRow(this)">Delete</button></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <input type="submit" value="submit" />
+}
+
+@section scripts{
+
+
+    <script type="text/javascript">
+        
+
+        function addChildRow() {
+            var newRowIndex = $("#children tr.childInfoRow").length;
+            var newRow = '<tr><td colspan="3">Child ' + newRowIndex + '</td></tr><tr class="childInfoRow"><td><input type="text" name="ColorAttributes[' + newRowIndex + '].ColorId" /></td>' +
+                '<td><button type="button" id="removeChild' + newRowIndex + '" onclick="removeChildRow(this)">Delete</button></td></tr>' +
+                '<td colspan="3">Grandchildren: <br/><button type="button" id="addGrandchild' + newRowIndex + '" onclick="addGrandchildRow(this)">Add Grandchild</button>' +
+                '<table id="grandChildren' + newRowIndex + '"><tbody></tbody></table></td></tr>';
+            $("#children tbody.childTableBody:last").append(newRow);
+        }
+
+        function addGrandchildRow(elem) {
+            var childIndex = $(elem).attr('id').replace('addGrandchild', '');
+            var newRowIndex = $("#grandChildren" + childIndex + " tr").length;
+            var newRow = '<tr><td><input type="text" name="ColorAttributes[' + childIndex + '].SizeAttributes[' + newRowIndex + '].SizeId" /></td>' +
+                '<td><input type="text" name="ColorAttributes[' + childIndex + '].SizeAttributes[' + newRowIndex + '].Quantity" /></td>' +
+                '<td><button type="button" id="removeGrandchild' + childIndex + '_' + newRowIndex + '" onclick="removeGrandchildRow(this)">Delete</button></td></tr>';
+            $("#grandChildren" + childIndex + " tbody:last").append(newRow);
+        }
+        function removeChildRow(elem) {
+            $(elem).closest('tr').prev().remove();
+            $(elem).closest('tr').next().remove();
+            $(elem).closest('tr').remove();
+        }
+        function removeGrandchildRow(elem) {
+            $(elem).closest('tr').remove();
+        }
+    </script>
+
+}

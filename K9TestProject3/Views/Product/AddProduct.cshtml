@@ -1,0 +1,125 @@
+﻿@model K9TestProject3.Fantastic.ProductVM
+
+@{
+    ViewBag.Title = "AddProduct";
+}
+
+<h2>Add Product</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <h4>Product</h4>
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.Productname, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Productname, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Productname, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Category, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Category, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Category, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        @*
+            Model.ColorAttributes.Count
+                Model.ColorAttributes[i].SizeAttributes.Count
+        *@
+        @for (int i = 0; i < 2; i++)
+        {
+            <div class="form-group">
+                @Html.LabelFor(model => model.ColorAttributes[i].ColorId, htmlAttributes: new { @class = "control-label col-md-2" })
+                @Html.EditorFor(model => model.ColorAttributes[i].ColorId, new { htmlAttributes = new { @class = "form-control" } })
+
+                @for (int j = 0; j < 2; j++)
+                {
+                    @Html.LabelFor(model => model.ColorAttributes[i].SizeAttributes[j].SizeId, htmlAttributes: new { @class = "control-label col-md-2" })
+                    @Html.EditorFor(model => model.ColorAttributes[i].SizeAttributes[j].SizeId, new { htmlAttributes = new { @class = "form-control" } })
+
+                    @Html.LabelFor(model => model.ColorAttributes[i].SizeAttributes[j].Quantity, htmlAttributes: new { @class = "control-label col-md-2" })
+                    @Html.EditorFor(model => model.ColorAttributes[i].SizeAttributes[j].Quantity, new { htmlAttributes = new { @class = "form-control" } })
+                }
+
+            </div>
+        }
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Create" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>
+
+
+@* <script type="text/javascript">
+        $(document).ready(function() {
+            $("#addGrandchild").click(function() {
+                $("#grandChildren tbody:last").append('<tr><td><input type="text" name="grandChildId" /></td><td><input type="text" name="grandChildText" /></td></tr>');
+            });
+        });
+    </script> *@
+
+
+
+
+@*
+
+        <button type="button" id="addGrandchild@(i)" onclick="addGrandchildRow(this)">Add Grandchild</button>
+                                   <table id="grandChildren@(i)">
+                                       <tbody>
+                                           @for (var j = 0; j < Model.Children[i].GrandChildren.Count; j++)
+                                           {
+                                               <tr>
+                                                   <td>@Html.TextBoxFor(m => @Model.Children[i].GrandChildren[j].GrandChildId)</td>
+                                                   <td>@Html.TextBoxFor(m => @Model.Children[i].GrandChildren[j].GrandChildText)</td>
+                                                   <td><button type="button" id="removeGrandchild@(i)_@(j)" onclick="removeGrandchildRow(this)">Delete</button></td>
+                                               </tr>
+                                           }
+                                       </tbody>
+                                   </table>
+
+
+
+        script type="text/javascript">
+        function addChildRow() {
+            var newRowIndex = $("#children tr.childInfoRow").length;
+            var newRow = '<tr><td colspan="3">Child ' + newRowIndex + '</td></tr><tr class="childInfoRow"><td><input type="text" name="Children[' + newRowIndex + '].ChildId" /></td>' +
+                '<td><input type="text" name="Children[' + newRowIndex + '].ChildText" /></td>' +
+                '<td><button type="button" id="removeChild' + newRowIndex + '" onclick="removeChildRow(this)">Delete</button></td></tr>' +
+                '<td colspan="3">Grandchildren: <br/><button type="button" id="addGrandchild' + newRowIndex + '" onclick="addGrandchildRow(this)">Add Grandchild</button>' +
+                '<table id="grandChildren' + newRowIndex + '"><tbody></tbody></table></td></tr>';
+            $("#children tbody.childTableBody:last").append(newRow);
+        }
+        function addGrandchildRow(elem) {
+            var childIndex = $(elem).attr('id').replace('addGrandchild', '');
+            var newRowIndex = $("#grandChildren" + childIndex + " tr").length;
+            var newRow = '<tr><td><input type="text" name="Children[' + childIndex + '].GrandChildren[' + newRowIndex + '].GrandChildId" /></td>' +
+                '<td><input type="text" name="Children[' + childIndex + '].GrandChildren[' + newRowIndex + '].GrandChildText" /></td>' +
+                '<td><button type="button" id="removeGrandchild' + childIndex + '_' + newRowIndex + '" onclick="removeGrandchildRow(this)">Delete</button></td></tr>';
+            $("#grandChildren" + childIndex + " tbody:last").append(newRow);
+        }
+        function removeChildRow(elem) {
+            $(elem).closest('tr').prev().remove();
+            $(elem).closest('tr').next().remove();
+            $(elem).closest('tr').remove();
+        }
+        function removeGrandchildRow(elem) {
+            $(elem).closest('tr').remove();
+        }
+    </script>
+
+    http://stackoverflow.com/questions/15851832/can-i-display-a-list-of-complex-objects-in-an-mvc-4-view-with-add-remove-capabil
+*@

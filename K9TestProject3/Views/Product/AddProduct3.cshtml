@@ -1,0 +1,308 @@
+﻿@model K9TestProject3.Fantastic.ProductVM
+
+@{
+    ViewBag.Title = "Add Product 2";
+}
+
+<h2>AddProduct2</h2>
+
+@using (@Html.BeginForm())
+{
+    <div>
+        @Html.TextBoxFor(m => m.Productname)
+        @Html.TextBoxFor(m => m.Category)
+
+        <br />
+        Children:<br />
+        <button type="button" id="addChild" onclick="addChildRow()">Add Child</button>
+        <table id="children">
+            <tbody class="childTableBody">
+                @for (var i = 0; i < Model.ColorAttributes.Count; i++)
+                {
+                    <tr>
+                        <td colspan="3">Child @i</td>
+                    </tr>
+                    <tr class="childInfoRow">
+                        @*<td>
+                            @Html.DropDownListFor(m => m.ColorId, new SelectList(Model.Colors, "ColorId", "ColorName"), "", new { @class = "form-control" })
+                        </td>
+                        <td>
+                            @Html.DropDownListFor(m => m.ColorAttributes[i].ColorId, new SelectList(Model.Colors, "ColorId", "ColorName"), "", new { @class = "form-control" })
+                        </td>
+                        @*<td>
+                                @Html.TextBoxFor(m => Model.ColorAttributes[i].)
+                            </td>*@
+                        <td>
+                            <select id="MyList" name="@Model.ColorAttributes[i].ColorId">
+                            </select>
+                        </td>
+                        <td>
+                            <button type="button" id="removeChild@(i)" onclick="removeChildRow(this)">Delete</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3">
+                            Grandchildren:<br />
+                            <button type="button" id="addGrandchild@(i)" onclick="addGrandchildRow(this)">Add Grandchild</button>
+                            <table id="grandChildren@(i)">
+                                <tbody>
+                                    @for (var j = 0; j < Model.ColorAttributes[i].SizeAttributes.Count; j++)
+                                    {
+                                        <tr>
+                                            <td>@Html.TextBoxFor(m => @Model.ColorAttributes[i].SizeAttributes[j].SizeId)</td>
+                                            <td>@Html.TextBoxFor(m => @Model.ColorAttributes[i].SizeAttributes[j].Quantity)</td>
+                                            <td><button type="button" id="removeGrandchild@(i)_@(j)" onclick="removeGrandchildRow(this)">Delete</button></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <input type="submit" value="submit" />
+}
+
+@section scripts{
+@*<script src="~/Scripts/ProductScript.js"></script>*@
+
+    <script type="text/javascript">
+
+        //var test = '<select id="ColorAttributes[' + newRowIndex + '].ColorId""  name="ColorAttributes[' + newRowIndex + '].ColorId"><option value=""></option></select>';
+
+
+
+
+        function addChildRow() {
+            var newRowIndex = $("#children tr.childInfoRow").length;
+            var newRow = '<tr><td colspan="3">Child ' + newRowIndex + '</td></tr><tr class="childInfoRow"><td><select id="MyList"></select></td>' +
+                '<td><button type="button" id="removeChild' + newRowIndex + '" onclick="removeChildRow(this)">Delete</button></td></tr>' +
+                '<td colspan="3">Grandchildren: <br/><button type="button" id="addGrandchild' + newRowIndex + '" onclick="addGrandchildRow(this)">Add Grandchild</button>' +
+                '<table id="grandChildren' + newRowIndex + '"><tbody></tbody></table></td></tr>';
+            $("#children tbody.childTableBody:last").append(newRow);
+
+            var lang = $("MyList option:selected").val();
+
+            $.getJSON("@Url.Action("GetColors", "Product")", null, function (data) {
+                $("#MyList option").remove(); // Remove all <option> child tags.
+                $.each(data, function (index, item) { // Iterates through a collection
+                    $("#MyList").append( // Append an object to the inside of the select box
+                        $("<option id='ColorAttributes[i].ColorId' value=''></option>") // Yes you can do this.
+                            .text(item.Text)
+                            .val(item.Id)
+                    );
+                });
+            });
+            //"<option id='ColorAttributes[' + newRowIndex + '].ColorId' value=''></option>"
+        }
+
+        function addGrandchildRow(elem) {
+            var childIndex = $(elem).attr('id').replace('addGrandchild', '');
+            var newRowIndex = $("#grandChildren" + childIndex + " tr").length;
+            var newRow = '<tr><td><input type="text" name="ColorAttributes[' + childIndex + '].SizeAttributes[' + newRowIndex + '].SizeId" /></td>' +
+                '<td><input type="text" name="ColorAttributes[' + childIndex + '].SizeAttributes[' + newRowIndex + '].Quantity" /></td>' +
+                '<td><button type="button" id="removeGrandchild' + childIndex + '_' + newRowIndex + '" onclick="removeGrandchildRow(this)">Delete</button></td></tr>';
+            $("#grandChildren" + childIndex + " tbody:last").append(newRow);
+        }
+        function removeChildRow(elem) {
+            $(elem).closest('tr').prev().remove();
+            $(elem).closest('tr').next().remove();
+            $(elem).closest('tr').remove();
+        }
+        function removeGrandchildRow(elem) {
+            $(elem).closest('tr').remove();
+        }
+
+
+
+
+
+
+
+
+
+        $(document).ready(function () {
+        $.getJSON("@Url.Action("GetColors", "Product")", null, function (data) {
+            $("#MyList option").remove(); // Remove all <option> child tags.
+            $.each(data, function (index, item) { // Iterates through a collection
+                $("#MyList").append( // Append an object to the inside of the select box
+                    $("<option></option>") // Yes you can do this.
+                        .text(item.Description)
+                        .val(item.Id)
+                );
+            });
+        });
+        });
+
+
+
+
+
+
+
+        @*$(document).ready(function () {
+        $.getJSON(
+            "@Url.Action("GetColors", "Product")",
+            null,
+            function (data) {
+            $("#MyList").addItems(data);
+        });
+    });
+
+        $("select")
+            .change(function () {
+                var lang = $("select option:selected").val();
+                $("#language").text(lang);
+                $.getJSON("lang.json", function (json) {
+                    $("#results").text(json.w1.lang);
+                });
+            });
+
+
+
+    $.fn.addItems = function (data) {
+        return this.each(function () {
+            var list = this;
+            $.each(data, function (index, itemData) {
+                var option = new Option(itemData.Text, itemData.Value);
+                list.add(option);
+            });
+        });
+    };*@
+
+
+
+
+
+
+        @*$(document).ready(function () {
+            $("#CategoryList").change(function () {
+                $.ajax({
+                    type: 'GET',
+                    url: '@Url.Action("GetColors")',
+                    datatype: JSON,
+                    data: { 'selectedValue': $("#CategoryList").val() },
+                    success: function (data) {
+                        $('#blogTable tbody').empty();
+
+                        $.each(data, function (i, item) {
+                            var rows = "<tr>"
+                    + "<td>" + item.PostId + "</td>"
+                    + "<td>" + item.PostTitle + "</td>"
+                    + "<td>" + item.ShortPostContent + "</td>"
+                    + "<td>" + item.MetaDescription + "</td>"
+                    + "</tr>";
+                            $('#blogTable tbody').append(rows);
+                        });
+                    },
+                    error: function (data) { }
+                });
+            });
+        });*@
+
+
+
+
+
+
+
+
+
+        @*$(document).ready(function () {
+            $('.ddlProjectvalue').change(function() {
+                debugger;
+                var selectedValue = $(this).val();
+                if (selectedValue != null && selectedValue !== '') {
+                    debugger;
+
+                    $.ajax({
+                        url: "@Url.Action("GetColors")",
+                        data: { selectedValue: selectedValue },
+                        dataType: "json",
+                        type: "GET",
+                        error: function() {
+                            alert(" An error occurred.");
+                        },
+                        success: function(data) {
+                            var optionhtml1 = '<option value="' +
+                                0 + '">' + "--Select State--" + '</option>';
+                            $(".ddlProjectvalue").append(optionhtml1);
+
+                            $.each(data, function(i) {
+
+                                var optionhtml = '<option value="' +
+                                    data[i].Value + '">' + data[i].Text + '</option>';
+                                $(".ddlProjectvalue").append(optionhtml);
+                            });
+                        }
+                    });
+                }
+            });
+        });*@
+
+
+
+
+
+
+
+        //$(document).ready(function () {
+        //    $.ajax({
+        //        type: "get",
+        //        url: "Product/GetSizes",
+        //        contentType: "application/json;charset=utf-8",
+        //        dataType: "html",
+        //        success: function (result) {
+        //            $.each(result, function (i) {
+        //                $('#DropDown').append($('<option></option>').val(result[i].ID).html(result[i].Name));
+        //            });
+        //        },
+        //        failure: function () {
+        //            alert("Error");
+        //        }
+        //    });
+
+        //});
+
+
+        //$(document).ready(function () {
+
+        //    $('#sizeId').change(function () {
+        //        var URL = 'Product/GetSizes' + $('#sizeId').val();
+        //        $.getJSON(URL, function (data) {
+        //            var items = '<option value="">Select size</option>';
+        //            $.each(data, function (i, id) {
+        //                items += "<option value='" + id.Value + "'>" + id.Text + "</option>";
+        //            });
+        //            $('#sizeId').html(items);
+        //        });
+        //    });
+
+            //$('#sizeId').change(function () {
+            //    var size = $('#sizeId option:selected').text();
+            //    var URL = 'Product/GetSizes=' + size;
+
+            //    $.ajax({
+            //            url: URL,
+            //            contentType: 'application/html; charset=utf-8',
+            //            type: 'GET',
+            //            dataType: 'html'
+
+            //        })
+            //        .success(function(result) {
+            //            $('#divLaptops').html(result);
+            //        })
+            //        .error(function(xhr, status) {
+            //            alert(status);
+            //        });
+            //});
+        //});
+
+
+
+
+    </script>
+
+}
