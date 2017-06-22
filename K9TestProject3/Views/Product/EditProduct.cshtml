@@ -1,82 +1,191 @@
-﻿@using K9TestProject3.Fantastic
-@model K9TestProject3.Fantastic.ProductVM
+﻿@model K9TestProject3.Fantastic.ProductVM
 
 @{
-    ViewBag.Title = "EditProduct";
+    ViewBag.Title = "Edit Product";
 }
 
 <h2>Edit Product</h2>
 
-@using (Html.BeginForm())
+@using (@Html.BeginForm())
 {
-    @Html.AntiForgeryToken()
+    <div>
+        @Html.HiddenFor(model => model.ProductId)
 
-    <div class="form-horizontal">
-        <h4>Product</h4>
-        <hr />
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-        <div class="form-group">
-            @Html.LabelFor(model => model.Productname, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.Productname, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.Productname, "", new { @class = "text-danger" })
-            </div>
-        </div>
 
-        <div class="form-group">
-            @Html.LabelFor(model => model.Category, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.Category, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.Category, "", new { @class = "text-danger" })
-            </div>
-        </div>
 
-        @{
-            var number = 0;
-        }
 
-        @if (Model.ColorAttributes.Count != 0)
-        {
-            number = Model.ColorAttributes.Count;
-        }
-        else
-        {
-            number = 1;
-        }
+        @Html.TextBoxFor(m => m.Productname)
+        @Html.TextBoxFor(m => m.Category)
 
-        @for (int i = 0; i < Model.ColorAttributes.Count; i++)
-        {
-            <div class="form-group">
-                @Html.LabelFor(model => model.ColorAttributes[i].ColorId, htmlAttributes: new { @class = "control-label col-md-2" })
-                @Html.EditorFor(model => model.ColorAttributes[i].ColorId, new { htmlAttributes = new { @class = "form-control" } })
+        <br/>
+        Children:<br/>
+        <button type="button" id="addChild" onclick="addChildRow()">Add Child</button>
+        <table id="children">
+            <tbody class="childTableBody">
+            @for (var i = 0; i < Model.ColorAttributes.Count; i++)
+            {
+                @Html.HiddenFor(model => model.ColorAttributes[i].ColorAttributeId)
 
-                @for (int j = 0; j < Model.ColorAttributes[i].SizeAttributes.Count; j++)
-                {
-                    @Html.LabelFor(model => model.ColorAttributes[i].SizeAttributes[j].SizeId, htmlAttributes: new { @class = "control-label col-md-2" })
-                    @Html.EditorFor(model => model.ColorAttributes[i].SizeAttributes[j].SizeId, new { htmlAttributes = new { @class = "form-control" } })
+                <tr>
+                    <td colspan="3">Child @i</td>
+                </tr>
+                <tr class="childInfoRow">
+                    <td>
+                        @if (Model.ColorAttributes.Count > 0)
+                        {
+                            @Html.DropDownListFor(m => m.ColorAttributes[i].ColorId, new SelectList(Model.ColorAttributes[i].Colors, "ColorId", "ColorName", Model.ColorAttributes[i].ColorId))
+                        }
+                        else
+                        {
+                            <select id="MyList" name="@Model.ColorAttributes[i].ColorId"></select>
+                        }
+                    </td>
+                    <td>
+                        @*<button type="button" id="removeChild@(i)" onclick="removeChildRow(this)" class="deleteItem">Delete</button>*@
+                        <button type="button" id="removeChild@(i)" name="@Model.ColorAttributes[i].ColorAttributesToDelete" onclick="removeChildRow(this)" data-last-value="@Model.ColorAttributes[i].ColorAttributeId" >Delete</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3">
+                        Grandchildren:<br/>
+                        <button type="button" id="addGrandchild@(i)" onclick="addGrandchildRow(this)">Add Grandchild</button>
+                        <table id="grandChildren@(i)">
+                            <tbody>
+                            @for (var j = 0; j < Model.ColorAttributes[i].SizeAttributes.Count; j++)
+                            {
+                                @Html.HiddenFor(model => model.ColorAttributes[i].SizeAttributes[j].SizeAttributeId)
 
-                    @Html.LabelFor(model => model.ColorAttributes[i].SizeAttributes[j].Quantity, htmlAttributes: new { @class = "control-label col-md-2" })
-                    @Html.EditorFor(model => model.ColorAttributes[i].SizeAttributes[j].Quantity, new { htmlAttributes = new { @class = "form-control" } })
-                }
+                                <tr>
+                                    <td>
+                                        @if (Model.ColorAttributes[i].SizeAttributes.Count > 0)
+                                        {
+                                            @Html.DropDownListFor(m => m.ColorAttributes[i].SizeAttributes[j].SizeId,
+                                                new SelectList(Model.ColorAttributes[i].SizeAttributes[j].Sizes,
+                                                    "SizeId", "SizeName",
+                                                    Model.ColorAttributes[i].SizeAttributes[j].SizeId))
+                                        }
+                                        else
+                                        {
+                                            <select id="MySizes"
+                                                    name="@Model.ColorAttributes[i].SizeAttributes[j].SizeId"></select>
+                                        }
+                                    </td>
 
-            </div>
-        }
-        @*@foreach (var colorAttribute in Model.ColorAttributes)
-        {
-            <div class="form-group">
-                @Html.LabelFor(model => colorAttribute.ColorId, htmlAttributes: new { @class = "control-label col-md-2" })
-                @Html.EditorFor(model => colorAttribute.ColorId, new { htmlAttributes = new { @class = "form-control" } })
-            </div>
-        }*@
 
-        <div class="form-group">
-            <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Create" class="btn btn-default" />
-            </div>
-        </div>
+
+                                    <td>@Html.TextBoxFor(m => @Model.ColorAttributes[i].SizeAttributes[j].Quantity)</td>
+                                    <td><button type="button" id="removeGrandchild@(i)_@(j)" onclick="removeGrandchildRow(this)">Delete</button></td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
     </div>
+    <input type="submit" value="submit" />
 }
 
-<div>
-    @Html.ActionLink("Back to List", "Index")
-</div>
+@section scripts{
+    <script type="text/javascript">
+
+        function addChildRow() {
+            var newRowIndex = $("#children tr.childInfoRow").length;
+            var newRow = '<tr><td colspan="3">Child ' + newRowIndex + '</td></tr><tr class="childInfoRow"><td><select id="MyList" name="ColorAttributes[' + newRowIndex + '].ColorId"></select></td>' +
+                '<td><button type="button" id="removeChild' + newRowIndex + '" onclick="removeChildRow(this)">Delete</button></td></tr>' +
+                '<td colspan="3">Grandchildren: <br/><button type="button" id="addGrandchild' + newRowIndex + '" onclick="addGrandchildRow(this)">Add Grandchild</button>' +
+                '<table id="grandChildren' + newRowIndex + '"><tbody></tbody></table></td></tr>';
+            $("#children tbody.childTableBody:last").append(newRow);
+
+            $("#MyList").change(function() {
+                var id = $(this).children(":selected").attr("value");
+                alert(id);
+            });
+            $.getJSON("@Url.Action("GetColors", "Product")", null, function(data) {
+                $("#MyList option:last-child").remove(); // Remove all <option> child tags.
+                $.each(data, function(index, item) { // Iterates through a collection
+                    $("#MyList:last-child").append( // Append an object to the inside of the select box
+                        $("<option id='" + item.Value + "' value='" + item.Value + "'></option>") // Yes you can do this.
+                        .text(item.Text)
+                        .val(item.Value)
+                    );
+                });
+            });
+        }
+
+        function addGrandchildRow(elem) {
+            var childIndex = $(elem).attr('id').replace('addGrandchild', '');
+            var newRowIndex = $("#grandChildren" + childIndex + " tr").length;
+            var newRow = '<tr><td><select id="MySizes" name="ColorAttributes[' + childIndex + '].SizeAttributes[' + newRowIndex + '].SizeId"></select></td>' +
+                '<td><input type="text" name="ColorAttributes[' + childIndex + '].SizeAttributes[' + newRowIndex + '].Quantity" /></td>' +
+                '<td><button type="button" id="removeGrandchild' + childIndex + '_' + newRowIndex + '" onclick="removeGrandchildRow(this)">Delete</button></td></tr>';
+            $("#grandChildren" + childIndex + " tbody:last").append(newRow);
+
+            $.getJSON("@Url.Action("GetSizes", "Product")", null, function(data) {
+                $("#MySizes option:last-child").remove(); // Remove all <option> child tags.
+                $.each(data, function(index, item) { // Iterates through a collection
+                    $("#MySizes:last-child").append( // Append an object to the inside of the select box
+                        $("<option id='" + item.Value + "' value='" + item.Value + "'></option>") // Yes you can do this.
+                        .text(item.Text)
+                        .val(item.Value)
+                    );
+                });
+            });
+        }
+
+        //function removeChildRow(elem) {
+        //    $(elem).closest('tr').prev().remove();
+        //    $(elem).closest('tr').next().remove();
+        //    $(elem).closest('tr').remove();
+        //}
+        function removeChildRow(elem) {
+            alert($(elem).data('lastValue'));
+            if (confirm('Do you really want to delete this item?')) {
+                $.ajax({
+                    url: '@Url.Action("DeleteItem")',
+                    type: 'POST',
+                    data: { id: $(elem).data('lastValue') }
+                }).done(function(data) {
+                    if (data.Result === "OK") {
+                        $(elem).closest('tr').prev().remove();
+                        $(elem).closest('tr').next().remove();
+                        $(elem).closest('tr').remove();
+                    } else if (data.Result.Message) {
+                        alert(data.Result.Message);
+                    }
+                }).fail(function() {
+                    alert("There is something wrong. Please try again.");
+                })
+
+                function removeGrandchildRow(elem) {
+                    $(elem).closest('tr').remove();
+                }
+
+                $('.deleteItem').click(function(e) {
+                    e.preventDefault();
+                    var $ctrl = $(this);
+                    if (confirm('Do you really want to delete this item?')) {
+                        $.ajax({
+                            url: '@Url.Action("DeleteItem")',
+                            type: 'POST',
+                            data: { id: $(this).data('id') }
+                        }).done(function(data) {
+                            if (data.Result === "OK") {
+                                $ctrl.closest('tr').prev().remove();
+                                $ctrl.closest('tr').next().remove();
+                                $ctrl.closest('tr').remove();
+                            } else if (data.Result.Message) {
+                                alert(data.Result.Message);
+                            }
+                        }).fail(function() {
+                            alert("There is something wrong. Please try again.");
+                        })
+                    }
+                });
+
+            }
+        }
+    </script>
+}

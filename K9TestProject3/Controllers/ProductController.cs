@@ -1,6 +1,9 @@
 ﻿using K9TestProject3.Fantastic;
+using K9TestProject3.HelpersLib;
 using K9TestProject3.Models;
+using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
 
@@ -8,6 +11,13 @@ namespace K9TestProject3.Controllers
 {
     public class ProductController : Controller
     {
+        private List<int> itemsToDelete = new List<int>();
+        private List<ColorAttributeVM> vms;
+        public ProductController()
+        {
+            vms = new List<ColorAttributeVM>();
+        }
+
         // GET: Product
         public ActionResult Index()
         {
@@ -25,7 +35,6 @@ namespace K9TestProject3.Controllers
 
         public ActionResult AddProduct3()
         {
-
             var dd = new Product()
             {
                 ColorAttributes = new List<ColorAttribute>()
@@ -39,8 +48,6 @@ namespace K9TestProject3.Controllers
                 };
                 return View(model);
             }
-
-
         }
 
         [HttpPost]
@@ -48,33 +55,20 @@ namespace K9TestProject3.Controllers
         {
             using (ApplicationDbContext db = new ApplicationDbContext())
             {
-                List<Size> sizeOrgs = db.Sizes.ToList();
-                ViewBag.SizeOrgs = sizeOrgs;
-
-                Product product = CreateProductFromViewMode(model);
+                Product product = ProductHelpers.CreateProductFromViewModel(model);
                 db.Products.Add(product);
                 db.SaveChanges();
-
-
             }
             return View("Index");
-
-            //var hierarchy = from p in ctx.Parents
-            //        .Include(p => p.Children.Select(c => c.GrandChild))
-            //                select p;
-
-            //var children = MenuList.MenuItems.Where(mi => mi.ParentId == 0);
-            //var grandchildren = MenuList.MenuItems.Where(mi => children.Any(c => c.Id == mi.ParentId));
-            //var descendants = children.Union(grandchildren);
         }
 
-        public ActionResult GetSizes(int selectedValue)
+        public ActionResult GetSizes()
         {
             List<Size> sizes = new List<Size>();
 
             using (ApplicationDbContext db = new ApplicationDbContext())
             {
-                sizes = db.Sizes.OrderBy(s => s.SizeName).Where(x => x.SizeId == selectedValue).ToList();
+                sizes = db.Sizes.OrderBy(s => s.SizeName).ToList();
             }
             return Json(new SelectList(sizes, "SizeId", "SizeName"), JsonRequestBehavior.AllowGet);
         }
@@ -90,70 +84,86 @@ namespace K9TestProject3.Controllers
             return Json(new SelectList(colors, "ColorId", "ColorName"), JsonRequestBehavior.AllowGet);
         }
 
-        private static Product CreateProductFromViewMode(ProductVM model)
-        {
-            var product = new Product()
-            {
-                ProductId = model.ProductId,
-                Productname = model.Productname,
-                Category = model.Category,
-            };
 
-            if (model.ColorAttributes.Count > 0)
-            {
-                int id = -1;
-                foreach (ColorAttributeVM colorAttribute in model.ColorAttributes ?? new List<ColorAttributeVM>())
-                {
-                    ColorAttribute colorDto = new ColorAttribute()
-                    {
-                        ColorAttributeId = id,
-                        ColorId = colorAttribute.ColorId,
-                        ProductId = colorAttribute.ProductId,
-                        SizeAttributes = new List<SizeAttribute>()
-                    };
-                    id--;
-
-                    if (model.ColorAttributes.Select(s => s.SizeAttributes).Any())
-                    {
-
-                        int sizeId = -1;
-                        foreach (SizeAttributeVM sizeAttribute in colorAttribute.SizeAttributes ?? new List<SizeAttributeVM>())
-                        {
-                            SizeAttribute sizeDto = new SizeAttribute()
-                            {
-                                SizeId = sizeAttribute.SizeId,
-                                SizeAttributeId = sizeId,
-                                Quantity = sizeAttribute.Quantity,
-                                ColorAttributeId = sizeAttribute.ColorAttributeId,
-                            };
-                            colorDto.SizeAttributes.Add(sizeDto);
-                            sizeId--;
-
-                        }
-                    }
-
-                    product.ColorAttributes.Add(colorDto);
-                }
-            }
-            return product;
-        }
 
         public ActionResult EditProduct(int? id)
         {
+            //DeleteItem(32);
             using (ApplicationDbContext db = new ApplicationDbContext())
             {
-                var model = db.Products.Find(id);
-                var model2 = db.Products.Where(x => x.ProductId == id);
-                var model3 = new ProductVM(model);
-                return View(model3);
+
+                var product2 = db.Products.Include(co => co.ColorAttributes).Include(si => si.ColorAttributes.Select(sis => sis.SizeAttributes)).SingleOrDefault(x => x.ProductId == id);
+                var colorList = db.Colors.ToList();
+                var sizeList = db.Sizes.ToList();
+
+                ProductVM model2 = ProductHelpers.CreateViewModelFromProduct(product2, colorList, sizeList);
+
+                return View(model2);
+            }
+        }
+
+        //public void DeleteItem(int id)
+        //{
+
+        //    itemsToDelete.Add(43);
+        //}
+
+
+        [HttpPost]
+        public JsonResult DeleteItem(int id)
+        {
+            try
+            {
+                itemsToDelete.Add(id);
+
+                //if (support == null)
+                //{
+                //    Response.StatusCode = (int)HttpStatusCode.NotFound;
+                //    return Json(new { Result = "Error" });
+                //}
+
+                //delete files from the file system
+
+                //db.Supports.Remove(support);
+                //db.SaveChanges();
+                return Json(new { Result = "OK" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Result = "ERROR", Message = ex.Message });
             }
         }
 
         [HttpPost]
-        public ActionResult EditProduct(Product product)
+        public ActionResult EditProduct(ProductVM model, FormCollection form)
         {
-            return View();
+            using (ApplicationDbContext db = new ApplicationDbContext())
+            {
+                //foreach (var i in itemsToDelete)
+                //{
+                //    model.ColorAttributes.Remove(i)
+                //}
+                var test = itemsToDelete;
+
+                Product product = ProductHelpers.EditProductFromViewModel(model);
+
+                db.Products.Attach(product);
+
+                db.Entry(product).State = EntityState.Modified;
+                foreach (var item in product.ColorAttributes)
+                {
+                    db.Entry(item).State = item.ColorAttributeId < 0 ?
+                        EntityState.Added : EntityState.Modified;
+
+                    foreach (var sizeAttribute in item.SizeAttributes)
+                    {
+                        db.Entry(sizeAttribute).State = sizeAttribute.SizeAttributeId < 0 ?
+                            EntityState.Added : EntityState.Modified;
+                    }
+                }
+                db.SaveChanges();
+            }
+            return View("Index");
         }
     }
-
 }

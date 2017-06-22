@@ -42,7 +42,7 @@ namespace K9TestProject3.Fantastic
     {
         public ColorAttributeVM()
         {
-
+            SizeAttributes = new List<SizeAttributeVM>();
         }
 
         public ColorAttributeVM(ColorAttribute row)
@@ -58,10 +58,15 @@ namespace K9TestProject3.Fantastic
 
         public int ProductId { get; set; }
 
+        public IEnumerable<Color> Colors { get; set; }
+
+
         // public int SizeAttributeId { get; set; }
         public List<SizeAttributeVM> SizeAttributes { get; set; }
 
         public int ColorId { get; set; }
+
+        public List<int> ColorAttributesToDelete { get; set; }
     }
 
     public class SizeAttributeVM
@@ -82,8 +87,10 @@ namespace K9TestProject3.Fantastic
 
         public int ColorAttributeId { get; set; }
         public int SizeId { get; set; }
+        public IEnumerable<Size> Sizes { get; set; }
 
         public int Quantity { get; set; }
+        public List<int> SizeAttributesToDelete { get; set; }
     }
     public class ColorVM
     {

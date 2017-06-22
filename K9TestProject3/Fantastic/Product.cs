@@ -16,7 +16,7 @@ namespace K9TestProject3.Fantastic
         public string Productname { get; set; }
         public string Category { get; set; }
 
-        public List<ColorAttribute> ColorAttributes { get; set; }
+        public virtual List<ColorAttribute> ColorAttributes { get; set; }
     }
 
     public class ColorAttribute
@@ -34,7 +34,7 @@ namespace K9TestProject3.Fantastic
         public int ProductId { get; set; }
 
         // public int SizeAttributeId { get; set; }
-        public List<SizeAttribute> SizeAttributes { get; set; }
+        public virtual List<SizeAttribute> SizeAttributes { get; set; }
 
         [Column(Order = 2)]
         public int ColorId { get; set; }
@@ -65,7 +65,7 @@ namespace K9TestProject3.Fantastic
         //[Column(Order = 1)]
         public int ColorAttributeId { get; set; }
         [ForeignKey("ColorAttributeId")]
-        public ColorAttribute ColorAttribute { get; set; }
+        public virtual ColorAttribute ColorAttribute { get; set; }
         //public List<ColorAttribute> ColorAttributes { get; set; }
 
         [Column(Order = 1)]

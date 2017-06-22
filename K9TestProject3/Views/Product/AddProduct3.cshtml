@@ -24,17 +24,16 @@
                     </tr>
                     <tr class="childInfoRow">
                         @*<td>
-                            @Html.DropDownListFor(m => m.ColorId, new SelectList(Model.Colors, "ColorId", "ColorName"), "", new { @class = "form-control" })
-                        </td>
+                                @Html.DropDownListFor(m => m.ColorId, new SelectList(Model.Colors, "ColorId", "ColorName"), "", new { @class = "form-control" })
+                            </td>
+                            <td>
+                                @Html.DropDownListFor(m => m.ColorAttributes[i].ColorId, new SelectList(Model.Colors, "ColorId", "ColorName"), "", new { @class = "form-control" })
+                            </td>
+                            @*<td>
+                                    @Html.TextBoxFor(m => Model.ColorAttributes[i].)
+                                </td>*@
                         <td>
-                            @Html.DropDownListFor(m => m.ColorAttributes[i].ColorId, new SelectList(Model.Colors, "ColorId", "ColorName"), "", new { @class = "form-control" })
-                        </td>
-                        @*<td>
-                                @Html.TextBoxFor(m => Model.ColorAttributes[i].)
-                            </td>*@
-                        <td>
-                            <select id="MyList" name="@Model.ColorAttributes[i].ColorId">
-                            </select>
+                            <select id="MyList" name="@Model.ColorAttributes[i].ColorId"></select>
                         </td>
                         <td>
                             <button type="button" id="removeChild@(i)" onclick="removeChildRow(this)">Delete</button>
@@ -49,7 +48,11 @@
                                     @for (var j = 0; j < Model.ColorAttributes[i].SizeAttributes.Count; j++)
                                     {
                                         <tr>
-                                            <td>@Html.TextBoxFor(m => @Model.ColorAttributes[i].SizeAttributes[j].SizeId)</td>
+                                            @*<td>@Html.TextBoxFor(m => @Model.ColorAttributes[i].SizeAttributes[j].SizeId)</td>*@
+                                            <td>
+                                                <select id="MySizes"
+                                                        name="@Model.ColorAttributes[i].SizeAttributes[j].SizeId"></select>
+                                            </td>
                                             <td>@Html.TextBoxFor(m => @Model.ColorAttributes[i].SizeAttributes[j].Quantity)</td>
                                             <td><button type="button" id="removeGrandchild@(i)_@(j)" onclick="removeGrandchildRow(this)">Delete</button></td>
                                         </tr>
@@ -66,18 +69,13 @@
 }
 
 @section scripts{
-@*<script src="~/Scripts/ProductScript.js"></script>*@
+    @*<script src="~/Scripts/ProductScript.js"></script>*@
 
     <script type="text/javascript">
 
-        //var test = '<select id="ColorAttributes[' + newRowIndex + '].ColorId""  name="ColorAttributes[' + newRowIndex + '].ColorId"><option value=""></option></select>';
-
-
-
-
         function addChildRow() {
             var newRowIndex = $("#children tr.childInfoRow").length;
-            var newRow = '<tr><td colspan="3">Child ' + newRowIndex + '</td></tr><tr class="childInfoRow"><td><select id="MyList"></select></td>' +
+            var newRow = '<tr><td colspan="3">Child ' + newRowIndex + '</td></tr><tr class="childInfoRow"><td><select id="MyList" name="ColorAttributes[' + newRowIndex + '].ColorId"></select></td>' +
                 '<td><button type="button" id="removeChild' + newRowIndex + '" onclick="removeChildRow(this)">Delete</button></td></tr>' +
                 '<td colspan="3">Grandchildren: <br/><button type="button" id="addGrandchild' + newRowIndex + '" onclick="addGrandchildRow(this)">Add Grandchild</button>' +
                 '<table id="grandChildren' + newRowIndex + '"><tbody></tbody></table></td></tr>';
@@ -85,13 +83,17 @@
 
             var lang = $("MyList option:selected").val();
 
+            $("#MyList").change(function () {
+                var id = $(this).children(":selected").attr("value");
+                alert(id);
+            });
             $.getJSON("@Url.Action("GetColors", "Product")", null, function (data) {
-                $("#MyList option").remove(); // Remove all <option> child tags.
+                $("#MyList option:last-child").remove(); // Remove all <option> child tags.
                 $.each(data, function (index, item) { // Iterates through a collection
-                    $("#MyList").append( // Append an object to the inside of the select box
-                        $("<option id='ColorAttributes[i].ColorId' value=''></option>") // Yes you can do this.
+                    $("#MyList:last-child").append( // Append an object to the inside of the select box
+                        $("<option id='" + item.Value + "' value='" + item.Value + "'></option>") // Yes you can do this.
                             .text(item.Text)
-                            .val(item.Id)
+                            .val(item.Value)
                     );
                 });
             });
@@ -101,10 +103,21 @@
         function addGrandchildRow(elem) {
             var childIndex = $(elem).attr('id').replace('addGrandchild', '');
             var newRowIndex = $("#grandChildren" + childIndex + " tr").length;
-            var newRow = '<tr><td><input type="text" name="ColorAttributes[' + childIndex + '].SizeAttributes[' + newRowIndex + '].SizeId" /></td>' +
+            var newRow = '<tr><td><select id="MySizes" name="ColorAttributes[' + childIndex + '].SizeAttributes[' + newRowIndex + '].SizeId"></select></td>' +
                 '<td><input type="text" name="ColorAttributes[' + childIndex + '].SizeAttributes[' + newRowIndex + '].Quantity" /></td>' +
                 '<td><button type="button" id="removeGrandchild' + childIndex + '_' + newRowIndex + '" onclick="removeGrandchildRow(this)">Delete</button></td></tr>';
             $("#grandChildren" + childIndex + " tbody:last").append(newRow);
+
+            $.getJSON("@Url.Action("GetSizes", "Product")", null, function (data) {
+                $("#MySizes option:last-child").remove(); // Remove all <option> child tags.
+                $.each(data, function (index, item) { // Iterates through a collection
+                    $("#MySizes:last-child").append( // Append an object to the inside of the select box
+                        $("<option id='" + item.Value + "' value='" + item.Value + "'></option>") // Yes you can do this.
+                            .text(item.Text)
+                            .val(item.Value)
+                    );
+                });
+            });
         }
         function removeChildRow(elem) {
             $(elem).closest('tr').prev().remove();
@@ -114,27 +127,6 @@
         function removeGrandchildRow(elem) {
             $(elem).closest('tr').remove();
         }
-
-
-
-
-
-
-
-
-
-        $(document).ready(function () {
-        $.getJSON("@Url.Action("GetColors", "Product")", null, function (data) {
-            $("#MyList option").remove(); // Remove all <option> child tags.
-            $.each(data, function (index, item) { // Iterates through a collection
-                $("#MyList").append( // Append an object to the inside of the select box
-                    $("<option></option>") // Yes you can do this.
-                        .text(item.Description)
-                        .val(item.Id)
-                );
-            });
-        });
-        });
 
 
 
@@ -280,24 +272,24 @@
         //        });
         //    });
 
-            //$('#sizeId').change(function () {
-            //    var size = $('#sizeId option:selected').text();
-            //    var URL = 'Product/GetSizes=' + size;
+        //$('#sizeId').change(function () {
+        //    var size = $('#sizeId option:selected').text();
+        //    var URL = 'Product/GetSizes=' + size;
 
-            //    $.ajax({
-            //            url: URL,
-            //            contentType: 'application/html; charset=utf-8',
-            //            type: 'GET',
-            //            dataType: 'html'
+        //    $.ajax({
+        //            url: URL,
+        //            contentType: 'application/html; charset=utf-8',
+        //            type: 'GET',
+        //            dataType: 'html'
 
-            //        })
-            //        .success(function(result) {
-            //            $('#divLaptops').html(result);
-            //        })
-            //        .error(function(xhr, status) {
-            //            alert(status);
-            //        });
-            //});
+        //        })
+        //        .success(function(result) {
+        //            $('#divLaptops').html(result);
+        //        })
+        //        .error(function(xhr, status) {
+        //            alert(status);
+        //        });
+        //});
         //});
 
 
